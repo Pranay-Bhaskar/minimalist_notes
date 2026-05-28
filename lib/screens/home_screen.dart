@@ -13,7 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const String _storageKey = 'minimalist_notes_data';
+  static const String _storageKey = 'memo_data';
   List<Note> _notes = [];
   Note? _activeNote;
 
@@ -132,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final firstLine = note.content.split('\n').first.trim();
       return firstLine.length > 30 ? '${firstLine.substring(0, 30)}...' : firstLine;
     }
-    return 'New Note';
+    return 'New Memo';
   }
 
   // --- UI Builders ---
@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const SizedBox(width: 16),
                 const Text(
-                  'Notes',
+                  'Memo',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
@@ -165,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _notes.isEmpty
                 ? const Center(
                     child: Text(
-                      'No notes yet',
+                      'No memos yet',
                       style: TextStyle(color: Colors.grey),
                     ),
                   )
@@ -232,18 +232,32 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEditor(bool isMobile) {
+  Widget _buildEditor(bool isMobile, GlobalKey<ScaffoldState> scaffoldKey) {
     if (_activeNote == null) {
       return Scaffold(
-        appBar: isMobile ? AppBar(leading: const _DrawerMenuButton()) : null,
+        appBar: isMobile
+            ? AppBar(
+                leading: IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () => scaffoldKey.currentState?.openDrawer(),
+                ),
+              )
+            : null,
         body: const Center(
-          child: Text('Select a note to begin.', style: TextStyle(color: Colors.grey, fontSize: 16)),
+          child: Text('Select a memo to begin.', style: TextStyle(color: Colors.grey, fontSize: 16)),
         ),
       );
     }
 
     return Scaffold(
-      appBar: isMobile ? AppBar(leading: const _DrawerMenuButton()) : null,
+      appBar: isMobile
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () => scaffoldKey.currentState?.openDrawer(),
+              ),
+            )
+          : null,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
         child: Column(
@@ -281,14 +295,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 768;
 
         if (isMobile) {
           return Scaffold(
+            key: _scaffoldKey,
             drawer: Drawer(child: _buildSidebar(true)),
-            body: _buildEditor(true),
+            body: _buildEditor(true, _scaffoldKey),
           );
         }
 
@@ -296,23 +313,11 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Row(
             children: [
               _buildSidebar(false),
-              Expanded(child: _buildEditor(false)),
+              Expanded(child: _buildEditor(false, _scaffoldKey)),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _DrawerMenuButton extends StatelessWidget {
-  const _DrawerMenuButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.menu),
-      onPressed: () => Scaffold.of(context).openDrawer(),
     );
   }
 }
